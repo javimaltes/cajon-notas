@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cajón">
+<meta name="theme-color" content="#1e1e1e">
+<title>Cajón de sastre</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#1e1e1e;--bg2:#262626;--bg3:#303030;--ink:#dcddde;--muted:#a3a3a3;--faint:#777;--line:#363636;--accent:#8b6cef;--ok:#34b35a;--danger:#e5534b;
+  --fs:17px;--top:env(safe-area-inset-top);--bot:env(safe-area-inset-bottom);color-scheme:dark}
+@media (prefers-color-scheme:light){:root{--bg:#fff;--bg2:#f3f3f3;--bg3:#e9e9e9;--ink:#222;--muted:#5f5f5f;--faint:#8a8a8a;--line:#e0e0e0;--accent:#7852ee;color-scheme:light}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;overscroll-behavior:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--top)}
+/* top bar */
+.top{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line);min-height:50px}
+.ib{width:40px;height:40px;display:grid;place-items:center;border-radius:9px;color:var(--muted);flex-shrink:0}
+.ib:active{background:var(--bg3)}
+.ib svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.title{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:99px;font-size:11.5px;font-weight:600;background:var(--bg3);color:var(--faint);flex-shrink:0}
+.badge i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.badge.on{background:rgba(52,179,90,.16);color:var(--ok)}
+.badge.err{color:var(--danger)}
+.az{display:flex;align-items:center;background:var(--bg3);border-radius:99px;flex-shrink:0}
+.az button{width:36px;height:32px;font-weight:600;color:var(--muted)}
+.az button:disabled{opacity:.35}
+.az span{width:1px;height:18px;background:var(--line)}
+/* main area */
+main{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+#ed{flex:1;width:100%;border:0;outline:0;resize:none;background:transparent;padding:18px 16px 120px;font-size:var(--fs);line-height:1.55;-webkit-user-select:text;user-select:text}
+.view{flex:1;overflow:auto;padding:18px 18px 130px;font-size:var(--fs);-webkit-overflow-scrolling:touch}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:30px;text-align:center;color:var(--muted)}
+.empty .big{font-size:20px;font-weight:650;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:11px;background:var(--accent);color:#fff;font-weight:600;font-size:16px}
+.btn.ghost{background:var(--bg3);color:var(--ink)}
+.link{color:var(--accent)}
+/* reading */
+.md h1{font-size:1.5em;margin:.3em 0 .4em}.md h2{font-size:1.3em;margin:.5em 0 .3em}.md h3{font-size:1.12em;margin:.5em 0 .3em}
+.md p{margin:.45em 0}.md blockquote{margin:.6em 0;padding:.1em 0 .1em 12px;border-left:3px solid var(--accent);color:var(--muted);font-style:italic}
+.md pre{background:var(--bg2);padding:10px;border-radius:7px;overflow:auto;font-size:.82em}
+.md hr{border:0;border-top:1px solid var(--line);margin:1em 0}
+.md ul{padding-left:1.3em;margin:.4em 0}.md li{margin:.15em 0}
+.md li.task{list-style:none;margin-left:-1.3em;display:flex;gap:9px;align-items:flex-start}
+.md li.task button{width:1.15em;height:1.15em;margin-top:.2em;border:1.6px solid var(--faint);border-radius:4px;flex-shrink:0;display:grid;place-items:center;font-size:.8em;color:#fff}
+.md li.task.done button{background:var(--accent);border-color:var(--accent)}
+.md li.task.done span{color:var(--faint);text-decoration:line-through}
+body.hidedone .md li.task.done{display:none}
+.md mark{background:rgba(139,108,239,.28);color:inherit;border-radius:3px;padding:0 2px}
+.md a{color:var(--accent)}
+/* thread & send */
+.tw{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:12px;margin-bottom:12px}
+.tw p{margin:0 0 8px;white-space:pre-wrap;font-size:calc(var(--fs) - 1px)}
+.tw footer{display:flex;align-items:center;gap:14px;font-size:13px}
+.tw footer .n{flex:1;color:var(--faint);font-variant-numeric:tabular-nums}
+.tw footer .n.over{color:var(--danger)}
+.tw footer button{color:var(--accent)}
+.seg{display:flex;background:var(--bg3);border-radius:9px;padding:2px;gap:2px}
+.seg button{flex:1;padding:6px 8px;border-radius:7px;font-size:13px;color:var(--muted)}
+.seg button.on{background:var(--bg);color:var(--ink);font-weight:600}
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.row{display:flex;align-items:center;gap:10px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted)}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+.bubble{margin-left:40px;background:var(--bg3);padding:12px;border-radius:13px;white-space:pre-wrap;font-size:calc(var(--fs) - 1px)}
+.wa{background:#26ad61;color:#fff}
+/* bottom bar */
+.bottom{display:flex;align-items:center;gap:6px;padding:6px 8px calc(6px + var(--bot));border-top:1px solid var(--line);background:var(--bg)}
+.chip{display:flex;align-items:center;gap:5px;max-width:96px;font-size:13px;color:var(--muted);padding:6px 4px}
+.chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modes{flex:1;display:flex;justify-content:center;gap:2px}
+.modes button{padding:6px 8px;border-radius:8px;font-size:13px;color:var(--muted)}
+.modes button.on{background:var(--bg3);color:var(--ink);font-weight:600}
+/* formatting bar over the keyboard */
+.fmt{position:fixed;left:0;right:0;bottom:0;display:flex;gap:2px;padding:5px 8px;background:var(--bg2);border-top:1px solid var(--line);z-index:30}
+.fmt button{flex:1;height:36px;border-radius:8px;font-weight:650;color:var(--ink)}
+.fmt button:active{background:var(--bg3)}
+/* side panel */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:40}
+.side{position:fixed;top:0;bottom:0;left:0;width:min(86vw,340px);background:var(--bg2);z-index:41;display:flex;flex-direction:column;padding-top:var(--top);transform:translateX(-102%);transition:transform .2s ease-out}
+.side.open{transform:none}
+.side header{display:flex;align-items:center;gap:4px;padding:10px 10px 6px 16px}
+.side header h2{flex:1;margin:0;font-size:17px}
+.search{margin:4px 12px 8px;display:flex;align-items:center;gap:6px;background:var(--bg3);border-radius:9px;padding:7px 9px;color:var(--faint)}
+.search input{flex:1;border:0;outline:0;background:transparent;font-size:15px;color:var(--ink);min-width:0}
+.tree{flex:1;overflow:auto;padding:0 6px 20px;-webkit-overflow-scrolling:touch}
+.sec{display:flex;align-items:center;gap:6px;width:100%;padding:14px 10px 4px;font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.r{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:7px;font-size:15px;color:var(--muted);text-align:left;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.r.on{background:var(--bg3);color:var(--ink);font-weight:600}
+.r .ch{width:14px;font-size:10px;color:var(--faint);text-align:center;flex-shrink:0}
+.r .ic{width:18px;text-align:center;flex-shrink:0}
+.r .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r.f .nm{color:var(--ink)}
+.r small{color:var(--faint);font-size:12px;flex-shrink:0;max-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r.pressed{background:var(--bg3)}
+.side footer{display:flex;align-items:center;gap:8px;padding:10px 14px calc(10px + var(--bot));border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.side footer .sp{flex:1}
+/* sheets */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--bg2);border-radius:16px 16px 0 0;padding:8px 0 calc(10px + var(--bot));animation:up .18s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:.4}}
+.sheet h3{margin:6px 18px 4px;font-size:15px}
+.sheet .hint{margin:2px 18px 8px;font-size:13px;color:var(--muted)}
+.sheet .it{display:flex;align-items:center;gap:12px;width:100%;padding:13px 18px;font-size:16px;text-align:left}
+.sheet .it:active{background:var(--bg3)}
+.sheet .it .ic{width:22px;text-align:center}
+.sheet .it.danger{color:var(--danger)}
+.sheet .it.on::after{content:"✓";margin-left:auto;color:var(--accent);font-weight:700}
+.sheet hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.sheet .field{display:block;width:calc(100% - 36px);margin:6px 18px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:16px;outline:0}
+.sheet .acts{display:flex;gap:10px;padding:10px 18px 4px}
+.sheet .acts .btn{flex:1;justify-content:center}
+.emo{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:6px 12px}
+.emo button{height:46px;font-size:27px;border-radius:9px}
+.emo button.on{background:var(--bg3)}
+.card{margin:8px 14px;padding:12px 14px;border-radius:12px;background:var(--bg)}
+.card .st{display:flex;align-items:center;gap:10px;font-weight:650;font-size:16px}
+.card .sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 14px 8px;-webkit-overflow-scrolling:touch}
+.chips button{flex-shrink:0;padding:6px 12px;border-radius:99px;background:var(--bg);font-size:13.5px;white-space:nowrap}
+.chips button.on{background:var(--accent);color:#fff;font-weight:600}
+.tk{display:flex;align-items:flex-start;gap:11px;width:100%;padding:10px 18px;text-align:left;font-size:var(--fs)}
+.tk .bx{width:1.1em;height:1.1em;margin-top:.22em;border:1.6px solid var(--faint);border-radius:4px;flex-shrink:0;display:grid;place-items:center;color:#fff;font-size:.8em}
+.tk.done .bx{background:var(--accent);border-color:var(--accent)}
+.tk.done .tx{color:var(--faint);text-decoration:line-through}
+.tkh{display:flex;align-items:center;gap:6px;width:100%;padding:12px 18px 2px;font-size:12.5px;font-weight:650;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(84px + var(--bot));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:11px;font-size:14px;z-index:90;max-width:88vw;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.banner{margin:8px 12px 0;padding:10px 34px 10px 12px;border-radius:10px;background:rgba(139,108,239,.16);font-size:13.5px;position:relative}
+.banner button{position:absolute;top:4px;right:4px;width:28px;height:28px;color:var(--muted);font-size:15px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <button class="ib" id="sideBtn" aria-label="Notas y carpetas"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></svg></button>
+    <button class="badge" id="link" hidden></button>
+    <div class="title" id="title"></div>
+    <div class="az" id="az" hidden><button id="aMinus" aria-label="Letra más pequeña" style="font-size:13px">A−</button><span></span><button id="aPlus" aria-label="Letra más grande" style="font-size:17px">A+</button></div>
+    <button class="ib" id="tasksBtn" aria-label="Tareas"><svg viewBox="0 0 24 24"><path d="M4 6l2 2 3-3M4 13l2 2 3-3M12 7h8M12 14h8M12 20h8"/></svg></button>
+    <button class="ib" id="newBtn" aria-label="Nueva nota"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+  <div id="banner"></div>
+  <main id="main"></main>
+  <div class="bottom" id="bottom" hidden>
+    <button class="chip" id="folderChip"></button>
+    <div class="modes" id="modes"></div>
+    <button class="ib" id="moreBtn" aria-label="Más"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></button>
+  </div>
+</div>
+<div class="fmt" id="fmt" hidden>
+  <button data-f="h">#</button><button data-f="li">•</button><button data-f="task">☐</button><button data-f="b">B</button><button data-f="i" style="font-style:italic">I</button><button data-f="q">❝</button><button data-f="done" aria-label="Ocultar el teclado">⌄</button>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="side" id="side" aria-label="Notas y carpetas">
+  <header><h2>Notas</h2>
+    <button class="ib" id="sNew" aria-label="Nueva nota"><svg viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16v4zM13 7l4 4"/></svg></button>
+    <button class="ib" id="sFolder" aria-label="Nueva carpeta"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg></button>
+  </header>
+  <label class="search"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Buscar en títulos y textos" autocomplete="off"></label>
+  <div class="tree" id="tree"></div>
+  <footer><span id="sideState"></span><span class="sp"></span><button class="link" id="sideComp">Ordenador</button></footer>
+</aside>
+<script>
+'use strict';
+const APP_VERSION='1.0';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const LS={get(k,d){try{const v=localStorage.getItem('cajon.'+k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem('cajon.'+k,JSON.stringify(v))}catch{}}};
+let toastT=null;
+function toast(msg,ms=2600){let t=$('.toast');if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t)}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,ms)}
+
+/* ================= storage: the notes live in this app's own database (IndexedDB) ================= */
+const DB={db:null,
+  open(){return new Promise((res,rej)=>{const r=indexedDB.open('cajon-notas',1);
+    r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('notes',{keyPath:'path'});d.createObjectStore('dirs',{keyPath:'path'});d.createObjectStore('kv');d.createObjectStore('trash',{keyPath:'id'})};
+    r.onsuccess=()=>{this.db=r.result;res()};r.onerror=()=>rej(r.error)})},
+  all(store){return new Promise((res,rej)=>{const q=this.db.transaction(store).objectStore(store).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})},
+  allKV(){return new Promise(res=>{const out={};const st=this.db.transaction('kv').objectStore('kv');const c=st.openCursor();c.onsuccess=()=>{const cur=c.result;if(cur){out[cur.key]=cur.value;cur.continue()}else res(out)};c.onerror=()=>res(out)})},
+  put(store,val,key){return new Promise(res=>{const tx=this.db.transaction(store,'readwrite');key!==undefined?tx.objectStore(store).put(val,key):tx.objectStore(store).put(val);tx.oncomplete=()=>res(true);tx.onerror=()=>res(false)})},
+  del(store,key){return new Promise(res=>{const tx=this.db.transaction(store,'readwrite');tx.objectStore(store).delete(key);tx.oncomplete=()=>res(true);tx.onerror=()=>res(false)})}
+};
+const S={notes:new Map(),dirs:new Set(),kv:{},active:null,mode:'write',sideOpen:false,query:'',dirty:false};
+const kvSet=(k,v)=>{S.kv[k]=v;return DB.put('kv',v,k)};
+const kvDel=k=>{delete S.kv[k];return DB.del('kv',k)};
+
+/* ---------- names and places ---------- */
+const folderOf=p=>p.includes('/')?p.slice(0,p.lastIndexOf('/')):'';
+const leaf=p=>p.split('/').pop();
+const nameOf=p=>leaf(p).replace(/\.md$/i,'');
+const depthOf=p=>p?p.split('/').length:0;
+const cleanName=s=>String(s||'').replace(/[\/\\:*?"<>|\u0000-\u001f]/g,' ').replace(/\s+/g,' ').trim().replace(/^\.+/,'').slice(0,80);
+function exists(p){return S.notes.has(p)||S.dirs.has(p)}
+function uniquePath(folder,base){base=cleanName(base)||'Sin título';const pre=folder?folder+'/':'';let p=pre+base+'.md',i=2;while(S.notes.has(p)||[...S.notes.keys()].some(k=>k.toLowerCase()===p.toLowerCase())){p=pre+base+' '+(i++)+'.md'}return p}
+function allDirs(){const d=new Set(S.dirs);for(const p of S.notes.keys()){let f=folderOf(p);while(f){d.add(f);f=folderOf(f)}}return [...d].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}))}
+const notesByDate=()=>[...S.notes.values()].sort((a,b)=>b.modified-a.modified);
+const icons=()=>{try{const m=S.kv.meta?JSON.parse(S.kv.meta):{};return m.icons||{}}catch{return {}}};
+
+/* ---------- writing notes (and telling the sync) ---------- */
+let changedHook=()=>{};
+async function writeNote(path,text,{quiet=false,modified}={}){const n={path,text,modified:modified||Date.now()};S.notes.set(path,n);await DB.put('notes',n);if(!quiet)changedHook()}
+async function trashNote(path,{quiet=false}={}){const n=S.notes.get(path);if(!n)return;S.notes.delete(path);await DB.del('notes',path);await DB.put('trash',{id:Date.now()+'-'+Math.random().toString(36).slice(2,6),path,text:n.text,deleted:Date.now()});if(!quiet)changedHook()}
+async function moveNote(path,to,{quiet=false}={}){const n=S.notes.get(path);if(!n||path===to)return false;S.notes.delete(path);await DB.del('notes',path);await writeNote(to,n.text,{quiet:true,modified:n.modified});
+  const ic=icons();if(ic[path]){ic[to]=ic[path];delete ic[path];await saveIcons(ic,{quiet:true})}if(!quiet)changedHook();return true}
+async function makeDir(path,{quiet=false}={}){if(!path)return;let f=path;while(f){if(!S.dirs.has(f)){S.dirs.add(f);await DB.put('dirs',{path:f})}f=folderOf(f)}if(!quiet)changedHook()}
+async function removeDir(path,{quiet=false}={}){S.dirs.delete(path);await DB.del('dirs',path);const ic=icons();if(ic[path]){delete ic[path];await saveIcons(ic,{quiet:true})}if(!quiet)changedHook()}
+async function saveIcons(ic,{quiet=false}={}){let m={};try{m=S.kv.meta?JSON.parse(S.kv.meta):{}}catch{}m.icons=ic;const keys=Object.keys(m).sort();const o={};for(const k of keys)o[k]=m[k];await kvSet('meta',JSON.stringify(o,null,1));if(!quiet)changedHook()}
+async function setIcon(path,emoji){const ic=icons();if(emoji)ic[path]=[...emoji.trim()].slice(0,2).join('');else delete ic[path];await saveIcons(ic);render()}
+
+/* ================= the open note ================= */
+const ed=()=>$('#ed');
+let saveT=null;
+function noteText(){const n=S.notes.get(S.active);return n?n.text:''}
+function scheduleSave(){S.dirty=true;clearTimeout(saveT);saveT=setTimeout(flushSave,600)}
+async function flushSave(){clearTimeout(saveT);if(!S.dirty||!S.active)return;S.dirty=false;const t=ed()?ed().value:noteText();
+  const n=S.notes.get(S.active);if(n&&n.text===t)return;await writeNote(S.active,t);
+  /* a note still called «Sin título» takes the name of its first line */
+  if(/^Sin título( \d+)?$/.test(nameOf(S.active))){const first=(t.split('\n').find(l=>l.trim())||'').replace(/^#+\s*|^[-*+]\s+(\[[ xX]\]\s+)?/,'').trim();const nm=cleanName(first).slice(0,60);
+    if(nm){const to=uniquePath(folderOf(S.active),nm);if(await moveNote(S.active,to,{quiet:true})){S.active=to;LS.set('active',to);renderTop();renderSide()}}}
+}
+function openNote(path){flushSave();S.active=path;LS.set('active',path);closeSide();render()}
+async function newNote(folder=''){await flushSave();const p=uniquePath(folder,'Sin título');await writeNote(p,'');S.active=p;LS.set('active',p);S.mode='write';LS.set('mode','write');closeSide();render();setTimeout(()=>ed()&&ed().focus(),60)}
+
+/* ================= markdown for reading ================= */
+function inl(s){let t=esc(s);
+  t=t.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/(^|[^*\w])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/~~([^~]+)~~/g,'<s>$1</s>').replace(/==([^=]+)==/g,'<mark>$1</mark>')
+   .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/(^|\s)(https?:\/\/[^\s<]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');return t}
+function mdHtml(text){const L=text.split('\n');let h='',para=[],list=null,code=null,quote=[];
+  const fp=()=>{if(para.length){h+='<p>'+para.map(inl).join('<br>')+'</p>';para=[]}if(quote.length){h+='<blockquote>'+quote.map(inl).join('<br>')+'</blockquote>';quote=[]}};
+  const fl=()=>{if(list){h+='<ul>'+list+'</ul>';list=null}};
+  L.forEach((raw,i)=>{const t=raw.trim();
+    if(code!==null){if(t.startsWith('```')){h+='<pre>'+esc(code.join('\n'))+'</pre>';code=null}else code.push(raw);return}
+    if(t.startsWith('```')){fp();fl();code=[];return}
+    if(!t){fp();fl();return}
+    if(/^(-{3,}|\*{3,}|_{3,})$/.test(t)){fp();fl();h+='<hr>';return}
+    let m;
+    if((m=t.match(/^(#{1,6})\s+(.*)$/))){fp();fl();const lv=Math.min(3,m[1].length);h+=`<h${lv}>${inl(m[2])}</h${lv}>`;return}
+    if(t.startsWith('>')){if(para.length){h+='<p>'+para.map(inl).join('<br>')+'</p>';para=[]}fl();quote.push(t.replace(/^>\s?/,''));return}
+    if((m=t.match(/^[-*+]\s+\[([ xX])\]\s+(.*)$/))){fp();const done=m[1]!==' ';list=(list||'')+`<li class="task${done?' done':''}"><button data-line="${i}" aria-label="${done?'Hecha':'Pendiente'}">${done?'✓':''}</button><span>${inl(m[2])}</span></li>`;return}
+    if((m=t.match(/^[-*+]\s+(.*)$/))||(m=t.match(/^\d+[.)]\s+(.*)$/))){fp();list=(list||'')+`<li>${inl(m[1])}</li>`;return}
+    if(quote.length){h+='<blockquote>'+quote.map(inl).join('<br>')+'</blockquote>';quote=[]}
+    fl();para.push(raw)});
+  if(code!==null)h+='<pre>'+esc(code.join('\n'))+'</pre>';fp();fl();
+  return h||'<p style="color:var(--faint)">Nota vacía</p>'}
+function flipLine(text,line){const L=text.split('\n');if(line<0||line>=L.length)return text;const l=L[line];
+  if(/\[ \]/.test(l))L[line]=l.replace('[ ]','[x]');else if(/\[[xX]\]/.test(l))L[line]=l.replace(/\[[xX]\]/,'[ ]');return L.join('\n')}
+
+/* ================= threads: a long text cut into posts ================= */
+const urlRe=/https?:\/\/\S+/g;
+const tweetLen=s=>{let n=[...s].length;for(const m of s.match(urlRe)||[])n+=23-[...m].length;return n};
+function splitThread(text,limit,numbered,byWords){
+  const room=Math.max(40,limit-(numbered?7:0));const out=[];
+  const secs=[[]];for(const line of text.split('\n')){if(line.trim()==='---')secs.push([]);else secs[secs.length-1].push(line)}
+  for(const sec of secs){const paras=sec.join('\n').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);let cur='';
+    paras.forEach((para,pi)=>{let first=true;
+      const units=byWords?para.split(/\s+/).filter(Boolean):sentencesOf(para,room);
+      for(let u of units){while(tweetLen(u)>room){const cut=[...u].slice(0,room).join('');if(cur){out.push(cur);cur=''}out.push(cut);u=[...u].slice(room).join('')}
+        if(!u)continue;const joiner=cur?(first&&pi>0?'\n\n':' '):'';const cand=cur+joiner+u;
+        if(tweetLen(cand)<=room)cur=cand;else{if(cur)out.push(cur);cur=u}first=false}});
+    if(cur)out.push(cur)}
+  if(numbered&&out.length>1){const n=out.length;return out.map((t,i)=>t+' '+(i+1)+'/'+n)}
+  return out}
+function sentencesOf(para,room){const s=para.split(/(?<=[.!?…]["»”')\]]*)\s+/).filter(Boolean);const out=[];
+  for(const x of s){if(tweetLen(x)<=room){out.push(x);continue}let line='';for(const w of x.split(/\s+/)){const c=line?line+' '+w:w;if(tweetLen(c)<=room)line=c;else{if(line)out.push(line);line=w}}if(line)out.push(line)}return out}
+
+/* ================= WhatsApp ================= */
+function waFormat(text){return String(text).split('\n').map(raw=>{let l=raw;const t=l.trim();
+    if(/^#+\s/.test(t))l='**'+t.replace(/^#+\s*/,'')+'**';else if(/^[-*+]\s+\[ \]\s/.test(t))l='☐ '+t.replace(/^[-*+]\s+\[ \]\s+/,'');else if(/^[-*+]\s+\[[xX]\]\s/.test(t))l='☑ '+t.replace(/^[-*+]\s+\[[xX]\]\s+/,'');else if(/^[*+]\s/.test(t))l='- '+t.slice(2);
+    return l.replace(/(?<![*\w])\*(?!\*)([^*\n]+?)\*(?!\*)/g,'_$1_').replace(/\*\*([^*\n]+?)\*\*/g,'*$1*').replace(/__([^_\n]+?)__/g,'*$1*').replace(/~~([^~\n]+?)~~/g,'~$1~').replace(/==([^=\n]+?)==/g,'*$1*').replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'$1 ($2)')}).join('\n').trim()}
+function sendWA(text){const t=encodeURIComponent(String(text||'').trim());if(!t)return;const start=Date.now();
+  location.href='whatsapp://send?text='+t;
+  /* no WhatsApp on this phone: the web page */
+  setTimeout(()=>{if(document.visibilityState==='visible'&&Date.now()-start<2500)window.open('https://wa.me/?text='+t,'_blank')},1600)}
+async function copyText(t){try{await navigator.clipboard.writeText(t);toast('Copiado')}catch{toast('No se pudo copiar')}}
+
+/* ================= screens ================= */
+const MODES=[['write','Escribir'],['read','Leer'],['thread','Hilo'],['send','Enviar']];
+const fs=()=>LS.get('fontSize',17);
+function setFont(v){v=Math.max(11,Math.min(48,v));LS.set('fontSize',v);document.documentElement.style.setProperty('--fs',v+'px');$('#aMinus').disabled=v<=11;$('#aPlus').disabled=v>=48}
+function render(){renderTop();renderMain();renderBottom();if(S.sideOpen)renderSide()}
+function renderTop(){const has=!!(S.active&&S.notes.has(S.active));$('#title').textContent=has?nameOf(S.active):'Cajón de sastre';$('#az').hidden=!has;renderLink()}
+function renderBottom(){const has=!!(S.active&&S.notes.has(S.active));$('#bottom').hidden=!has;if(!has)return;
+  const f=folderOf(S.active),ic=icons();$('#folderChip').innerHTML=`<span>${f&&ic[f]?esc(ic[f]):'📁'}</span><span>${esc(f?leaf(f):'No guardadas')}</span>`;
+  $('#modes').innerHTML=MODES.map(([k,l])=>`<button data-mode="${k}" class="${S.mode===k?'on':''}">${l}</button>`).join('')}
+function renderMain(){const m=$('#main');$('#fmt').hidden=true;
+  if(!S.active||!S.notes.has(S.active)){S.active=null;
+    m.innerHTML=S.notes.size?`<div class="empty"><div class="big">Elige una nota</div><div>o crea una nueva.</div><button class="btn" id="eNew">Nueva nota</button><button class="link" id="eSide">Ver las notas</button></div>`
+      :`<div class="empty"><div style="font-size:44px">🗃️</div><div class="big">Cajón de sastre</div><div>Tus notas, en este iPhone y en el bloc del ordenador.</div>${conn()?'':'<button class="btn" id="eComp">Enlazar con el ordenador</button>'}<button class="${conn()?'btn':'link'}" id="eNew">Escribir una nota</button></div>`;return}
+  const text=noteText();
+  if(S.mode==='write'){m.innerHTML='<textarea id="ed" spellcheck="true" autocapitalize="sentences" placeholder="Escribe…"></textarea>';ed().value=text;return}
+  if(S.mode==='read'){m.innerHTML=`<div class="view md" id="readView">${mdHtml(text)}</div>`;return}
+  if(S.mode==='thread'){renderThread(m,text);return}
+  renderSend(m,text)}
+function renderThread(m,text){const lim=LS.get('tLimit',280),num=LS.get('tNum',true),byW=LS.get('tWords',true);const parts=splitThread(text,lim,num,byW);
+  m.innerHTML=`<div class="view"><div class="opts"><div class="seg" data-opt="tLimit">${[280,300,500].map(v=>`<button data-v="${v}" class="${lim===v?'on':''}">${v}</button>`).join('')}</div>
+    <div class="seg" data-opt="tWords"><button data-v="true" class="${byW?'on':''}">Llenar hasta el límite</button><button data-v="false" class="${!byW?'on':''}">Por frases</button></div>
+    <div class="row"><label class="toggle"><input type="checkbox" id="tNum"${num?' checked':''}> Numerar 1/n</label><span style="flex:1"></span><span style="color:var(--muted);font-size:13px">${parts.length} ${parts.length===1?'mensaje':'mensajes'}</span></div></div>
+    ${parts.map((p,i)=>{const n=tweetLen(p);return `<div class="tw"><p>${esc(p)}</p><footer><span class="n${n>lim?' over':''}">${n}/${lim}</span><button data-wa="${i}">WhatsApp</button><button data-copy="${i}">Copiar</button></footer></div>`}).join('')||'<p style="color:var(--faint)">Escribe la nota y aquí aparecerá dividida en mensajes. Una línea con --- fuerza un corte.</p>'}</div>`;
+  m._parts=parts}
+function renderSend(m,text){const conv=LS.get('waFormat',true);const msg=conv?waFormat(text):text.trim();
+  m.innerHTML=`<div class="view"><label class="toggle" style="margin-bottom:14px"><input type="checkbox" id="waConv"${conv?' checked':''}> Pasar el formato a WhatsApp (negritas, cursivas…)</label>
+    <div class="bubble">${msg?esc(msg):'<span style="color:var(--faint)">Escribe la nota y aquí verás el mensaje.</span>'}</div>
+    <div class="row" style="margin-top:16px"><button class="btn wa" id="waGo"${msg?'':' disabled'}>Abrir WhatsApp</button><button class="btn ghost" id="waCopy"${msg?'':' disabled'}>Copiar</button></div>
+    <p style="color:var(--faint);font-size:13px">WhatsApp se abre con el mensaje escrito: tú eliges a quién. Para mandarlo a trozos, usa el modo Hilo.</p></div>`;m._msg=msg}
+
+/* ================= side panel: latest notes, then folders and notes ================= */
+const LOOSE='\u0001no-guardadas';
+function openSide(){flushSave();S.sideOpen=true;$('#scrim').hidden=false;$('#side').classList.add('open');renderSide()}
+function closeSide(){S.sideOpen=false;$('#scrim').hidden=true;$('#side').classList.remove('open')}
+function renderSide(){const q=S.query.trim().toLowerCase();const ic=icons();const folded=new Set(LS.get('folded',[]));
+  const match=n=>!q||nameOf(n.path).toLowerCase().includes(q)||folderOf(n.path).toLowerCase().includes(q)||n.text.toLowerCase().includes(q);
+  const notes=notesByDate().filter(match);
+  const byF={};for(const n of notes)(byF[folderOf(n.path)]=byF[folderOf(n.path)]||[]).push(n);
+  const dirs=allDirs();const kids={};for(const d of dirs)(kids[folderOf(d)]=kids[folderOf(d)]||[]).push(d);
+  const count=f=>(byF[f]||[]).length+(kids[f]||[]).reduce((a,k)=>a+count(k),0);
+  const noteRow=(n,d,showF)=>{const ico=ic[n.path];return `<button class="r${n.path===S.active?' on':''}" data-note="${esc(n.path)}" style="padding-left:${10+d*16+(d>0&&!showF?20:0)}px"><span class="ic">${ico?esc(ico):'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg>'}</span><span class="nm">${esc(nameOf(n.path))}</span>${showF?`<small>${esc(folderOf(n.path)?leaf(folderOf(n.path)):'No guardadas')}</small>`:''}</button>`};
+  const folderRow=(f,d,c,loose)=>{const open=!!q||!folded.has(f);return `<button class="r f" data-folder="${esc(f)}" style="padding-left:${10+d*16}px"><span class="ch">${open?'▾':'▸'}</span><span class="ic">${loose?'📥':ic[f]?esc(ic[f]):'📁'}</span><span class="nm">${loose?'No guardadas':esc(leaf(f))}</span><small>${c||''}</small></button>`};
+  let h='';
+  if(!q&&S.notes.size){const ro=LS.get('recentOpen',true),to=LS.get('treeOpen',true);
+    h+=`<button class="sec" data-sec="recentOpen">${ro?'▾':'▸'} Últimas notas</button>`;if(ro)h+=notesByDate().slice(0,5).map(n=>noteRow(n,0,true)).join('');
+    h+=`<button class="sec" data-sec="treeOpen">${to?'▾':'▸'} Carpetas y notas</button>`;if(!to){$('#tree').innerHTML=h;return}}
+  const loose=byF['']||[];
+  if(!q||loose.length){h+=folderRow(LOOSE,0,loose.length,true);if(q||!folded.has(LOOSE))h+=loose.map(n=>noteRow(n,1)).join('')}
+  const walk=(p,d)=>{for(const f of kids[p]||[]){const c=count(f);if(q&&!c)continue;h+=folderRow(f,d,c);if(q||!folded.has(f)){walk(f,d+1);h+=(byF[f]||[]).map(n=>noteRow(n,d+1)).join('')}}};
+  walk('',0);
+  if(q&&!notes.length)h+=`<p style="padding:14px;color:var(--faint);font-size:14px">Ninguna nota contiene «${esc(S.query)}».</p>`;
+  if(!S.notes.size&&!dirs.length)h+=`<p style="padding:14px;color:var(--faint);font-size:14px">Todavía no hay notas.${conn()?'':' Enlaza con el ordenador (abajo) para traer las del bloc.'}</p>`;
+  $('#tree').innerHTML=h}
+
+/* ================= sheets (menus at the bottom, like iOS) ================= */
+function sheet(html,onClick,{onOpen}={}){closeSheet();const bg=document.createElement('div');bg.className='sheet-bg';bg.innerHTML=`<div class="sheet" role="dialog">${html}</div>`;document.body.appendChild(bg);
+  bg.addEventListener('click',e=>{if(e.target===bg){closeSheet();return}const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const keep=b.dataset.keep;if(!keep)closeSheet();onClick&&onClick(b.dataset.a,b)});
+  onOpen&&onOpen(bg);return bg}
+function closeSheet(){$$('.sheet-bg').forEach(x=>x.remove())}
+function ask(title,{value='',placeholder='',ok='Guardar',hint=''}={}){return new Promise(res=>{let done=false;
+  const bg=sheet(`<h3>${esc(title)}</h3>${hint?`<p class="hint">${esc(hint)}</p>`:''}<input class="field" id="askIn" value="${esc(value)}" placeholder="${esc(placeholder)}" enterkeyhint="done"><div class="acts"><button class="btn ghost" data-a="no">Cancelar</button><button class="btn" data-a="ok" data-keep="1">${esc(ok)}</button></div>`,a=>{done=true;const v=a==='ok'?($('#askIn')||{}).value:null;closeSheet();res(v==null?null:v)},{onOpen:bg=>{const i=$('#askIn',bg);setTimeout(()=>{i.focus();i.select()},50);i.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const v=i.value;closeSheet();done=true;res(v)}})}});
+  const mo=new MutationObserver(()=>{if(!document.contains(bg)){mo.disconnect();if(!done)res(null)}});mo.observe(document.body,{childList:true})})}
+function confirmSheet(title,okLabel,hint=''){return new Promise(res=>{let done=false;const bg=sheet(`<h3>${esc(title)}</h3>${hint?`<p class="hint">${esc(hint)}</p>`:''}<button class="it danger" data-a="ok">${esc(okLabel)}</button><hr><button class="it" data-a="no">Cancelar</button>`,a=>{done=true;res(a==='ok')});
+  const mo=new MutationObserver(()=>{if(!document.contains(bg)){mo.disconnect();if(!done)res(false)}});mo.observe(document.body,{childList:true})})}
+const EMOJI=['📁','📂','🗂️','📚','📖','📘','📕','📗','📙','📓','📒','📝','✏️','🖋️','💡','⭐','❤️','🔥','✅','📌','📎','🔖','🏷️','🗓️','⏰','🎯','🏠','💼','🎓','🧪','🎨','🎬','🎵','📷','✈️','🌍','🌊','🌿','🍀','🌸','☀️','🌙','⚡','🔒','🔑','💰','🛒','🍽️','☕','🍷','🎁','🐱','🐶','👤','👥','🧠','💬','📣','❓','❗'];
+function iconSheet(path,label){const cur=icons()[path];
+  sheet(`<h3>Icono de ${esc(label)}</h3><div class="emo">${EMOJI.map(e=>`<button data-a="e:${e}" class="${cur===e?'on':''}">${e}</button>`).join('')}</div>
+    <input class="field" id="emoIn" placeholder="Otro: abre el teclado de emojis"><div class="acts"><button class="btn ghost" data-a="none">Sin icono</button><button class="btn" data-a="mine" data-keep="1">Poner</button></div>`,a=>{
+    if(a==='none')setIcon(path,null);else if(a==='mine'){const v=($('#emoIn')||{}).value;closeSheet();if(v&&v.trim())setIcon(path,v)}else setIcon(path,a.slice(2))})}
+function moveSheet(current,onPick,title='Mover a…'){const ic=icons();const dirs=allDirs();
+  sheet(`<h3>${esc(title)}</h3><button class="it${current===''?' on':''}" data-a="d:"><span class="ic">📥</span>No guardadas</button>${dirs.map(d=>`<button class="it${current===d?' on':''}" data-a="d:${esc(d)}" style="padding-left:${18+(depthOf(d)-1)*18}px"><span class="ic">${ic[d]?esc(ic[d]):'📁'}</span>${esc(leaf(d))}</button>`).join('')}`,a=>onPick(a.slice(2)))}
+
+/* ---------- note and folder actions ---------- */
+async function moveNoteTo(path,folder){await flushSave();if(folderOf(path)===folder)return;const to=uniquePath(folder,nameOf(path));if(await moveNote(path,to)){if(S.active===path){S.active=to;LS.set('active',to)}render();renderSide();toast(folder?'Movida a «'+leaf(folder)+'»':'Movida a «No guardadas»')}}
+async function renameNote(path){const v=await ask('Cambiar el nombre',{value:nameOf(path)});if(v==null)return;const nm=cleanName(v);if(!nm||nm===nameOf(path))return;await flushSave();
+  const to=uniquePath(folderOf(path),nm);if(await moveNote(path,to)){if(S.active===path){S.active=to;LS.set('active',to)}render();renderSide()}}
+async function deleteNote(path){if(!(await confirmSheet('¿Borrar «'+nameOf(path)+'»?','Borrar la nota','Va a la papelera y se borra también en el ordenador.')))return;
+  await trashNote(path);if(S.active===path){S.active=null;LS.set('active',null)}render();renderSide();toast('Nota borrada')}
+async function newFolder(parent=''){const v=await ask(parent?'Nueva subcarpeta en «'+leaf(parent)+'»':'Nueva carpeta',{placeholder:'Nombre',ok:'Crear'});const nm=cleanName(v);if(!nm)return;
+  const p=(parent?parent+'/':'')+nm;if(exists(p)){toast('Ya existe');return}await makeDir(p);const f=new Set(LS.get('folded',[]));f.delete(p);f.delete(parent);LS.set('folded',[...f]);renderSide()}
+async function renameFolder(path){const v=await ask('Cambiar el nombre',{value:leaf(path)});const nm=cleanName(v);if(!nm||nm===leaf(path))return;
+  const to=(folderOf(path)?folderOf(path)+'/':'')+nm;if(exists(to)){toast('Ya hay una carpeta con ese nombre');return}await moveFolder(path,to)}
+async function moveFolder(path,to){await flushSave();
+  for(const p of [...S.notes.keys()])if(p.startsWith(path+'/')){const np=to+p.slice(path.length);await moveNote(p,np,{quiet:true});if(S.active===p){S.active=np;LS.set('active',np)}}
+  for(const d of [...S.dirs])if(d===path||d.startsWith(path+'/')){await removeDir(d,{quiet:true});await makeDir(to+d.slice(path.length),{quiet:true})}
+  const ic=icons();let ch=false;for(const k of Object.keys(ic))if(k===path||k.startsWith(path+'/')){ic[to+k.slice(path.length)]=ic[k];delete ic[k];ch=true}if(ch)await saveIcons(ic,{quiet:true});
+  changedHook();render();renderSide()}
+async function deleteFolder(path){if(!(await confirmSheet('¿Borrar la carpeta «'+leaf(path)+'»?','Borrar la carpeta','Las notas y subcarpetas que tiene no se borran: suben un nivel.')))return;
+  await flushSave();const up=folderOf(path);
+  for(const p of [...S.notes.keys()])if(folderOf(p)===path){const np=uniquePath(up,nameOf(p));await moveNote(p,np,{quiet:true});if(S.active===p){S.active=np;LS.set('active',np)}}
+  for(const d of allDirs())if(folderOf(d)===path){let t=(up?up+'/':'')+leaf(d);if(exists(t))t+=' (de '+leaf(path)+')';await moveFolder(d,t)}
+  await removeDir(path);render();renderSide()}
+function noteMenu(path){sheet(`<h3>${esc(nameOf(path))}</h3><button class="it" data-a="open"><span class="ic">📄</span>Abrir</button><button class="it" data-a="move"><span class="ic">📁</span>Mover a…</button><button class="it" data-a="ren"><span class="ic">✏️</span>Cambiar el nombre</button><button class="it" data-a="ico"><span class="ic">😀</span>Icono…</button><hr><button class="it danger" data-a="del"><span class="ic">🗑️</span>Borrar la nota</button>`,a=>{
+  if(a==='open')openNote(path);else if(a==='move')moveSheet(folderOf(path),f=>moveNoteTo(path,f));else if(a==='ren')renameNote(path);else if(a==='ico')iconSheet(path,'la nota');else if(a==='del')deleteNote(path)})}
+function folderMenu(path){if(path===LOOSE){sheet(`<h3>No guardadas</h3><p class="hint">Las notas que no están en ninguna carpeta.</p><button class="it" data-a="new"><span class="ic">📝</span>Nueva nota aquí</button>`,a=>{if(a==='new')newNote('')});return}
+  sheet(`<h3>${esc(leaf(path))}</h3><button class="it" data-a="new"><span class="ic">📝</span>Nueva nota aquí</button><button class="it" data-a="sub"><span class="ic">📁</span>Nueva subcarpeta</button><button class="it" data-a="ico"><span class="ic">😀</span>Icono…</button><button class="it" data-a="ren"><span class="ic">✏️</span>Cambiar el nombre</button><button class="it" data-a="mv"><span class="ic">↪️</span>Mover a…</button><hr><button class="it danger" data-a="del"><span class="ic">🗑️</span>Borrar la carpeta</button>`,a=>{
+    if(a==='new')newNote(path);else if(a==='sub')newFolder(path);else if(a==='ico')iconSheet(path,'la carpeta');else if(a==='ren')renameFolder(path);else if(a==='del')deleteFolder(path);
+    else if(a==='mv')moveSheet(folderOf(path),async f=>{if(f===path||f.startsWith(path+'/')){toast('No se puede meter una carpeta dentro de sí misma');return}let t=(f?f+'/':'')+leaf(path);if(t===path)return;if(exists(t)){toast('Allí ya hay una carpeta con ese nombre');return}await moveFolder(path,t)},'Mover la carpeta a…')})}
+
+/* ================= tasks: lists of «- [ ]» ================= */
+const taskRe=/^\s*[-*+]\s+\[([ xX])\]\s+(.*)$/;
+function tasksOf(path){const n=S.notes.get(path);if(!n)return [];const out=[];n.text.split('\n').forEach((l,i)=>{const m=l.match(taskRe);if(m)out.push({path,line:i,done:m[1]!==' ',text:m[2]})});return out}
+function taskLists(){const out=[];const root=[...S.notes.keys()].find(p=>!p.includes('/')&&nameOf(p).toLowerCase()==='tareas');if(root)out.push(root);
+  out.push(...[...S.notes.keys()].filter(p=>folderOf(p).toLowerCase()==='tareas').sort((a,b)=>nameOf(a).localeCompare(nameOf(b),'es')));return out}
+async function toggleTask(path,line){await flushSave();const n=S.notes.get(path);if(!n)return;await writeNote(path,flipLine(n.text,line))}
+function tasksSheet(){flushSave();const list=LS.get('taskList',''),style=LS.get('doneStyle','strike');const lists=taskLists();const cur=list&&S.notes.has(list)?list:'';
+  const items=cur?tasksOf(cur):notesByDate().sort((a,b)=>(nameOf(b.path).toLowerCase()==='tareas')-(nameOf(a.path).toLowerCase()==='tareas')).flatMap(n=>tasksOf(n.path));
+  const shown=items.filter(t=>style!=='hide'||!t.done);const groups=[];for(const t of shown){let g=groups.find(x=>x.path===t.path);if(!g)groups.push(g={path:t.path,items:[]});g.items.push(t)}
+  sheet(`<div class="row" style="padding:4px 14px 0"><h3 style="flex:1;margin:6px 4px">Tareas</h3><button class="link" data-a="style" data-keep="1" style="font-size:14px">${style==='hide'?'Ver hechas tachadas':'Esconder las hechas'}</button></div>
+    <div class="chips"><button data-a="l:" data-keep="1" class="${cur?'':'on'}">Todas</button>${lists.map(p=>`<button data-a="l:${esc(p)}" data-keep="1" class="${cur===p?'on':''}">${esc(nameOf(p))}</button>`).join('')}<button data-a="newlist" data-keep="1">＋ Lista</button></div>
+    <input class="field" id="tkIn" placeholder="${cur?'Nueva tarea en «'+esc(nameOf(cur))+'»':'Nueva tarea (va a la nota «Tareas»)'}" enterkeyhint="done">
+    ${groups.map(g=>`${cur?'':`<button class="tkh" data-a="go:${esc(g.path)}">📄 ${esc(nameOf(g.path))}${folderOf(g.path)?' · '+esc(folderOf(g.path)):''} ›</button>`}${g.items.map(t=>`<button class="tk${t.done?' done':''}" data-a="t:${t.line}:${esc(t.path)}" data-keep="1"><span class="bx">${t.done?'✓':''}</span><span class="tx">${inl(t.text)}</span></button>`).join('')}`).join('')
+      ||`<p class="hint" style="padding:10px 4px">${cur?(style==='hide'?'Nada pendiente en esta lista.':'Esta lista está vacía.'):(style==='hide'?'No tienes tareas pendientes.':'No hay tareas en tus notas.')}</p>`}
+    ${cur?`<hr><button class="it" data-a="clear"><span class="ic">🧹</span>Quitar las hechas de esta lista</button><button class="it danger" data-a="dellist"><span class="ic">🗑️</span>Borrar esta lista</button>`:''}`,async(a)=>{
+    if(a==='style'){LS.set('doneStyle',style==='hide'?'strike':'hide');document.body.classList.toggle('hidedone',LS.get('doneStyle')==='hide');tasksSheet();return}
+    if(a.startsWith('l:')){LS.set('taskList',a.slice(2));tasksSheet();return}
+    if(a==='newlist'){const v=await ask('Nueva lista de tareas',{placeholder:'Nombre (p. ej. Compra)',ok:'Crear',hint:'Se guarda como una nota en la carpeta «Tareas», así también la ves en el ordenador.'});const nm=cleanName(v);if(nm){const fold=allDirs().find(d=>d.toLowerCase()==='tareas')||'Tareas';const p=uniquePath(fold,nm);await writeNote(p,'# '+nm+'\n\n');LS.set('taskList',p)}tasksSheet();return}
+    if(a.startsWith('t:')){const i=a.indexOf(':',2);await toggleTask(a.slice(i+1),+a.slice(2,i));if(S.mode==='read'&&S.active===a.slice(i+1))renderMain();tasksSheet();return}
+    if(a.startsWith('go:')){openNote(a.slice(3));return}
+    if(a==='clear'){const n=S.notes.get(cur);await writeNote(cur,n.text.split('\n').filter(l=>!/^\s*[-*+]\s+\[[xX]\]/.test(l)).join('\n'));render();tasksSheet();return}
+    if(a==='dellist'){if(await confirmSheet('¿Borrar la lista «'+nameOf(cur)+'»?','Borrar')){LS.set('taskList','');await trashNote(cur);if(S.active===cur)S.active=null;render()}return}
+  },{onOpen:bg=>{const i=$('#tkIn',bg);i.addEventListener('keydown',async e=>{if(e.key!=='Enter')return;e.preventDefault();const t=i.value.trim();if(!t)return;
+      const target=cur||[...S.notes.keys()].find(p=>!p.includes('/')&&nameOf(p).toLowerCase()==='tareas')||'Tareas.md';
+      if(target===S.active)await flushSave();const n=S.notes.get(target);let tx=n?n.text:'# Tareas\n\n';if(tx&&!tx.endsWith('\n'))tx+='\n';await writeNote(target,tx+'- [ ] '+t+'\n');
+      if(S.active===target)renderMain();tasksSheet();setTimeout(()=>{const x=$('#tkIn');x&&x.focus()},60)})}})}
+
+/* ================= the computer: pairing and sync (same as the iPhone app, over Tailscale's https) ================= */
+const conn=()=>S.kv.conn||null;
+const sync={state:'off',msg:'',busy:false,seq:0,loopId:0,soonT:null,last:0,waitCtl:null};
+function normHost(h){h=String(h||'').trim().replace(/\/+$/,'');if(!h)return '';if(!/^https?:\/\//i.test(h))h='https://'+h;return h}
+async function api(method,path,{query={},body=null,timeout=15000,host,auth=true}={}){const c=conn();const base=host||(c&&c.host);if(!base)throw new Error('sin ordenador');
+  const u=new URL(path,base+'/');for(const [k,v] of Object.entries(query))u.searchParams.set(k,v);
+  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),timeout);if(path==='/wait')sync.waitCtl=ctl;
+  try{const headers={};if(auth&&c)headers.Authorization='Bearer '+c.token;if(body!=null)headers['Content-Type']=typeof body==='string'&&path==='/pair'?'application/json':'application/octet-stream';
+    return await fetch(u,{method,headers,body,signal:ctl.signal,cache:'no-store'})}finally{clearTimeout(t)}}
+async function sha1(text){const b=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(text));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const dec=new TextDecoder('utf-8',{ignoreBOM:true});
+function setLink(state,msg=''){sync.state=state;sync.msg=msg;renderLink()}
+function renderLink(){const c=conn();const b=$('#link');if(!c){b.hidden=true;$('#sideState').textContent='Sin enlazar';return}
+  b.hidden=false;b.className='badge'+(sync.state==='on'?' on':sync.state==='error'?' err':'');b.innerHTML=`<i></i>${sync.state==='on'?'Enlazado':sync.state==='error'?'Error':'Sin enlace'}`;
+  $('#sideState').textContent=sync.state==='on'?'● Enlazado con «'+c.name+'»':'Sin conexión ahora'}
+async function pair(host,code,{silent=false}={}){host=normHost(host);code=String(code||'').trim();
+  if(!host||!code)return 'Escribe la dirección y el código.';
+  try{const r=await api('POST','/pair',{host,auth:false,body:JSON.stringify({code,name:'iPhone (app web)'}),timeout:12000});let j={};try{j=await r.json()}catch{}
+    if(r.status!==200||!j.token)return j.error||('No se pudo emparejar ('+r.status+').');
+    await kvSet('conn',{host,token:j.token,name:j.name||'Ordenador'});await kvDel('base:'+host);startSync();return null}
+  catch(e){return 'No consigo conectar con '+host+'. Comprueba que el bloc está abierto en el ordenador, que Tailscale está activado en este iPhone y que la conexión segura está preparada en el bloc. ('+(e&&e.name==='AbortError'?'sin respuesta':String(e&&e.message||e))+')'}}
+async function forget(){stopSync();await kvDel('conn');setLink('off');render()}
+function startSync(){if(!conn())return;sync.loopId++;const id=sync.loopId;loop(id)}
+function stopSync(){sync.loopId++;try{sync.waitCtl&&sync.waitCtl.abort()}catch{}clearTimeout(sync.soonT)}
+async function loop(id){let fails=0;while(id===sync.loopId){const ok=await syncNow();if(id!==sync.loopId)return;
+  if(!ok){fails++;await sleep(Math.min(30000,3000*fails));continue}fails=0;
+  try{await api('GET','/wait',{query:{seq:String(sync.seq)},timeout:35000})}catch{if(id===sync.loopId)await sleep(1500)}}}
+changedHook=()=>{if(!conn()||sync.applying)return;clearTimeout(sync.soonT);sync.soonT=setTimeout(()=>syncNow(),1200)};
+async function syncNow(){const c=conn();if(!c)return false;if(sync.busy)return true;sync.busy=true;
+  try{await flushSave();const r=await api('GET','/list',{timeout:12000});
+    if(r.status===401){setLink('error','El ordenador ya no reconoce esta app: empareja otra vez.');return false}
+    if(!r.ok){setLink('off');return false}
+    const j=await r.json();if(typeof j.seq==='number')sync.seq=j.seq;
+    const remote={};for(const f of j.files||[])remote[f.path]=f.sha;
+    const changed=await applySync(c,remote,new Set(j.dirs||[]),j.meta||null);
+    setLink('on');sync.last=Date.now();
+    if(changed){if(S.active&&!S.notes.has(S.active))S.active=null;
+      if(S.mode==='write'&&ed()&&document.activeElement===ed()){/* typing: keep the text box, update only if this note changed elsewhere */const n=S.notes.get(S.active);if(n&&n.text!==ed().value&&!S.dirty){const pos=ed().selectionStart;ed().value=n.text;ed().selectionStart=ed().selectionEnd=Math.min(pos,n.text.length)}renderTop();renderBottom()}
+      else render();if(S.sideOpen)renderSide()}
+    return true}
+  catch(e){setLink('off');return false}
+  finally{sync.busy=false}}
+async function applySync(c,remote,rdirs,rmeta){
+  const key='base:'+c.host;const base=Object.assign({files:{},dirs:[],meta:null},S.kv[key]||{});const b=Object.assign({},base.files);
+  const local={};for(const [p,n] of S.notes)local[p]=await sha1(n.text);
+  let changed=false;sync.applying=true;const remoteNow=Object.assign({},remote);
+  const pull=async p=>{const r=await api('GET','/file',{query:{p}});if(r.status!==200)return false;const t=dec.decode(await r.arrayBuffer());const old=S.notes.get(p);await writeNote(p,t,{quiet:true,modified:old&&old.text===t?old.modified:Date.now()});return true};
+  const push=async p=>{const n=S.notes.get(p);if(!n)return null;const r=await api('PUT','/file',{query:{p},body:n.text,timeout:30000});if(r.status!==200)return null;let j={};try{j=await r.json()}catch{}return j.sha||await sha1(n.text)};
+  try{
+    const all=new Set([...Object.keys(local),...Object.keys(remote)]);
+    for(const p of [...all].sort()){const l=local[p],r=remote[p],o=b[p];
+      if(l===r){if(l)b[p]=l;else delete b[p];continue}
+      if(l===o){if(r){if(await pull(p)){changed=true;b[p]=r}}else{await trashNote(p,{quiet:true});changed=true;delete b[p]}}
+      else if(r===o){if(l){const h=await push(p);if(h){b[p]=h;remoteNow[p]=h}}else{const x=await api('DELETE','/file',{query:{p}});if(x.status===200){delete b[p];delete remoteNow[p]}}}
+      else if(!l){if(await pull(p)){changed=true;b[p]=r}}
+      else if(!r){const h=await push(p);if(h){b[p]=h;remoteNow[p]=h}}
+      else{/* changed on both sides: keep both; the computer's version goes next to it, marked «(escritorio)» */
+        const x=await api('GET','/file',{query:{p}});if(x.status===200){const t=dec.decode(await x.arrayBuffer());const copy=uniquePath(folderOf(p),nameOf(p)+' (escritorio)');await writeNote(copy,t,{quiet:true});changed=true;const h=await push(copy);if(h){b[copy]=h;remoteNow[copy]=h}}
+        const h=await push(p);if(h){b[p]=h;remoteNow[p]=h}}}
+    /* folders, the empty ones too; deepest first */
+    const ldirs=new Set(allDirs());const bd=new Set(base.dirs);const kept=new Set();
+    for(const d of [...new Set([...ldirs,...rdirs])].sort((x,y)=>depthOf(y)-depthOf(x))){const l=ldirs.has(d),r=rdirs.has(d);
+      if(l&&r){bd.add(d);kept.add(d);continue}
+      if(l){const hasNotes=[...S.notes.keys()].some(p=>p.startsWith(d+'/'));const hasSub=allDirs().some(x=>x.startsWith(d+'/'));
+        if(bd.has(d)&&!hasNotes&&!hasSub){await removeDir(d,{quiet:true});changed=true;bd.delete(d)}
+        else{const x=await api('PUT','/dir',{query:{p:d},body:''});if(x.status===200){bd.add(d);kept.add(d)}}}
+      else{const gone=bd.has(d)&&!Object.keys(remoteNow).some(p=>p.startsWith(d+'/'))&&![...kept].some(k=>k.startsWith(d+'/'));
+        if(gone){const x=await api('DELETE','/dir',{query:{p:d}});if(x.status===200)bd.delete(d)}
+        else{await makeDir(d,{quiet:true});changed=true;bd.add(d);kept.add(d)}}}
+    /* icons (.cajon.json) */
+    const lmeta=S.kv.meta?await sha1(S.kv.meta):null;let bmeta=base.meta;
+    if(lmeta===rmeta)bmeta=lmeta;
+    else if(lmeta&&rmeta===base.meta){const x=await api('PUT','/meta',{body:S.kv.meta});if(x.status===200){let jj={};try{jj=await x.json()}catch{}bmeta=jj.sha||lmeta}}
+    else if(rmeta){const x=await api('GET','/meta');if(x.status===200){const t=dec.decode(await x.arrayBuffer());await kvSet('meta',t);bmeta=await sha1(t);changed=true}}
+    await kvSet(key,{files:b,dirs:[...bd],meta:bmeta});
+  }finally{sync.applying=false}
+  return changed}
+function computerSheet(){const c=conn();
+  if(c){sheet(`<div class="card"><div class="st"><span style="color:var(--ok);font-size:22px">✓</span>Emparejado con «${esc(c.name)}»</div>
+      <div class="sub" style="color:${sync.state==='on'?'var(--ok)':'var(--muted)'};font-weight:600">${sync.state==='on'?'● Enlazado ahora':sync.state==='error'?esc(sync.msg):'Sin conexión ahora (¿bloc abierto? ¿Tailscale activado en este iPhone?)'}</div>
+      ${sync.last?`<div class="sub">Última sincronización: ${new Date(sync.last).toLocaleTimeString('es-ES')}</div>`:''}<div class="sub" style="word-break:break-all">${esc(c.host)}</div></div>
+      <button class="it" data-a="now"><span class="ic">🔄</span>Sincronizar ahora</button><button class="it" data-a="again"><span class="ic">🔗</span>Emparejar otra vez</button><button class="it danger" data-a="forget"><span class="ic">✖️</span>Olvidar este ordenador</button>
+      <hr><button class="it" data-a="backup"><span class="ic">💾</span>Descargar una copia de todas las notas</button><button class="it" data-a="restore"><span class="ic">📥</span>Recuperar una copia…</button>
+      <p class="hint">Cajón de sastre (app web) ${APP_VERSION}</p>`,a=>{
+      if(a==='now')syncNow().then(ok=>toast(ok?'Sincronizado':'No llego al ordenador ahora'));else if(a==='again')pairSheet();else if(a==='forget')forget();else if(a==='backup')backup();else if(a==='restore')restorePick()});return}
+  pairSheet()}
+function pairSheet(msg=''){const c=conn();
+  sheet(`<h3>Enlazar con el ordenador</h3><p class="hint">En el ordenador: bloc › ⋯ › <b>iPhone: emparejar y estado</b>. En «App web del iPhone» sale la dirección segura y el código. (Lo más fácil es escanear su código QR con la cámara.)</p>
+    <input class="field" id="pHost" placeholder="https://tu-ordenador.tu-red.ts.net" value="${esc(c?c.host:'')}" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="url">
+    <input class="field" id="pCode" placeholder="Código de 4 cifras" inputmode="numeric" maxlength="4">
+    ${msg?`<p class="hint" style="color:var(--danger)">${esc(msg)}</p>`:''}
+    <p class="hint">Tiene que estar activado <b>Tailscale</b> en este iPhone, con la misma cuenta que en el ordenador.</p>
+    <div class="acts"><button class="btn ghost" data-a="no">Cancelar</button><button class="btn" data-a="go" data-keep="1">Emparejar</button></div>`,async(a,b)=>{
+    if(a!=='go')return;b.disabled=true;b.textContent='Emparejando…';const err=await pair($('#pHost').value,$('#pCode').value);
+    if(err){pairSheet(err)}else{closeSheet();toast('¡Emparejado! Trayendo las notas del ordenador…',3500)}})}
+/* the QR of the computer opens the app with #emparejar=… : pair at once */
+async function pairFromHash(){const m=location.hash.match(/emparejar=([A-Za-z0-9_\-]+)/);if(!m)return;
+  let j;try{j=JSON.parse(atob(m[1].replace(/-/g,'+').replace(/_/g,'/')))}catch{return}
+  const c=conn();if(c&&normHost(c.host)===normHost(j.h)&&LS.get('pairedCode')===j.c)return;   /* already done (the icon on the home screen keeps this address) */
+  const err=await pair(j.h,j.c);
+  if(!err){LS.set('pairedCode',j.c);toast('¡Emparejado con «'+(j.n||'el ordenador')+'»!',3500);showInstallTip()}
+  else if(!c)pairSheet(err)}
+const standalone=()=>navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+function showInstallTip(){if(standalone())return;$('#banner').innerHTML=`<div class="banner">📲 Para tenerla como una app: <b>Compartir</b> <span style="font-size:15px">⎋</span> › <b>Añadir a pantalla de inicio</b>. Ábrela siempre desde ese icono.<button onclick="this.parentElement.remove()" aria-label="Cerrar">✕</button></div>`}
+
+/* ---------- a copy of everything, as a file (just in case) ---------- */
+function backup(){flushSave();const data={app:'cajon-notas',v:1,date:new Date().toISOString(),notes:[...S.notes.values()],dirs:[...S.dirs],meta:S.kv.meta||null};
+  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cajon-notas-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+function restorePick(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=async()=>{const f=i.files[0];if(!f)return;let d;try{d=JSON.parse(await f.text())}catch{toast('Ese archivo no es una copia de Cajón de sastre');return}
+  if(!d||d.app!=='cajon-notas'||!Array.isArray(d.notes)){toast('Ese archivo no es una copia de Cajón de sastre');return}
+  let n=0;for(const x of d.notes){if(!x||typeof x.path!=='string'||typeof x.text!=='string')continue;const cur=S.notes.get(x.path);if(!cur){await writeNote(x.path,x.text,{quiet:true,modified:x.modified||Date.now()});n++}else if(cur.text!==x.text){await writeNote(uniquePath(folderOf(x.path),nameOf(x.path)+' (copia)'),x.text,{quiet:true});n++}}
+  for(const dd of d.dirs||[])await makeDir(dd,{quiet:true});changedHook();render();toast(n?n+' notas recuperadas':'No había nada nuevo en la copia')};i.click()}
+
+/* ================= events ================= */
+function longPress(container){let t=null,start=null,target=null,fired=false;
+  container.addEventListener('pointerdown',e=>{const r=e.target.closest('.r');if(!r)return;target=r;fired=false;start=[e.clientX,e.clientY];r.classList.add('pressed');
+    t=setTimeout(()=>{fired=true;r.classList.remove('pressed');if(navigator.vibrate)navigator.vibrate(10);r.dataset.note!=null?noteMenu(r.dataset.note):folderMenu(r.dataset.folder)},520)});
+  const cancel=()=>{clearTimeout(t);t=null;target&&target.classList.remove('pressed')};
+  container.addEventListener('pointermove',e=>{if(start&&Math.hypot(e.clientX-start[0],e.clientY-start[1])>9)cancel()});
+  container.addEventListener('pointerup',cancel);container.addEventListener('pointercancel',cancel);container.addEventListener('scroll',cancel,true);
+  container.addEventListener('contextmenu',e=>{const r=e.target.closest('.r');if(!r)return;e.preventDefault();if(!fired){fired=true;r.dataset.note!=null?noteMenu(r.dataset.note):folderMenu(r.dataset.folder)}});
+  container.addEventListener('click',e=>{if(fired){e.preventDefault();e.stopPropagation();fired=false}},true)}
+function wire(){
+  $('#sideBtn').onclick=()=>S.sideOpen?closeSide():openSide();$('#scrim').onclick=closeSide;
+  $('#newBtn').onclick=()=>newNote(S.active?folderOf(S.active):'');$('#sNew').onclick=()=>newNote('');$('#sFolder').onclick=()=>newFolder('');
+  $('#tasksBtn').onclick=tasksSheet;$('#link').onclick=computerSheet;$('#sideComp').onclick=computerSheet;
+  $('#aMinus').onclick=()=>setFont(fs()-2);$('#aPlus').onclick=()=>setFont(fs()+2);
+  $('#q').addEventListener('input',e=>{S.query=e.target.value;renderSide()});
+  const tree=$('#tree');longPress(tree);
+  tree.addEventListener('click',e=>{const s=e.target.closest('[data-sec]');if(s){LS.set(s.dataset.sec,!LS.get(s.dataset.sec,true));renderSide();return}
+    const r=e.target.closest('.r');if(!r)return;if(r.dataset.note!=null){openNote(r.dataset.note);return}
+    const f=r.dataset.folder;const fo=new Set(LS.get('folded',[]));fo.has(f)?fo.delete(f):fo.add(f);LS.set('folded',[...fo]);renderSide()});
+  $('#modes').addEventListener('click',async e=>{const b=e.target.closest('[data-mode]');if(!b)return;await flushSave();S.mode=b.dataset.mode;LS.set('mode',S.mode);renderMain();renderBottom()});
+  $('#folderChip').onclick=()=>{if(S.active)moveSheet(folderOf(S.active),f=>moveNoteTo(S.active,f))};
+  $('#moreBtn').onclick=()=>{if(!S.active)return;const p=S.active;const n=S.notes.get(p);const words=(n.text.match(/\S+/g)||[]).length;
+    sheet(`<h3>${esc(nameOf(p))}</h3><p class="hint">${words} palabras · letra ${fs()} · app web ${APP_VERSION}</p>
+      <button class="it" data-a="wa"><span class="ic">💬</span>Mandar por WhatsApp</button><button class="it" data-a="copy"><span class="ic">📋</span>Copiar el texto</button>
+      <button class="it" data-a="ren"><span class="ic">✏️</span>Cambiar el nombre</button><button class="it" data-a="ico"><span class="ic">😀</span>Icono de la nota…</button><button class="it" data-a="move"><span class="ic">📁</span>Mover a…</button>
+      <button class="it" data-a="hd"><span class="ic">☑️</span>${LS.get('doneStyle','strike')==='hide'?'Ver las tareas hechas (tachadas)':'Esconder las tareas hechas al leer'}</button>
+      <button class="it" data-a="comp"><span class="ic">🖥️</span>${conn()?'Ordenador: '+esc(conn().name):'Enlazar con el ordenador…'}</button>
+      <hr><button class="it danger" data-a="del"><span class="ic">🗑️</span>Borrar la nota</button>`,a=>{
+      if(a==='wa')sendWA(waFormat(noteText()));else if(a==='copy')copyText(noteText());else if(a==='ren')renameNote(p);else if(a==='ico')iconSheet(p,'la nota');else if(a==='move')moveSheet(folderOf(p),f=>moveNoteTo(p,f));
+      else if(a==='hd'){LS.set('doneStyle',LS.get('doneStyle','strike')==='hide'?'strike':'hide');document.body.classList.toggle('hidedone',LS.get('doneStyle')==='hide')}
+      else if(a==='comp')computerSheet();else if(a==='del')deleteNote(p)})};
+  const main=$('#main');
+  main.addEventListener('input',e=>{if(e.target.id==='ed')scheduleSave()});
+  main.addEventListener('beforeinput',e=>{if(e.target.id!=='ed'||(e.inputType!=='insertLineBreak'&&e.inputType!=='insertParagraph'))return;if(continueList(e.target))e.preventDefault()});
+  main.addEventListener('keydown',e=>{if(e.target.id==='ed'&&e.key==='Enter'&&!e.isComposing&&continueList(e.target))e.preventDefault()});
+  /* while writing, the formatting bar takes the place of the bottom bar (and sits on top of the keyboard) */
+  main.addEventListener('focusin',e=>{if(e.target.id==='ed'){$('#fmt').hidden=false;$('#bottom').style.visibility='hidden';placeFmt()}});
+  main.addEventListener('focusout',e=>{if(e.target.id==='ed'){flushSave();setTimeout(()=>{if(document.activeElement!==ed()){$('#fmt').hidden=true;$('#bottom').style.visibility=''}},120)}});
+  main.addEventListener('click',async e=>{const t=e.target;
+    if(t.id==='eNew'){newNote('');return}if(t.id==='eSide'){openSide();return}if(t.id==='eComp'){computerSheet();return}
+    const tb=t.closest('li.task button');if(tb){await toggleTask(S.active,+tb.dataset.line);renderMain();return}
+    const seg=t.closest('.seg button');if(seg){const k=seg.parentElement.dataset.opt;LS.set(k,k==='tWords'?seg.dataset.v==='true':+seg.dataset.v);renderMain();return}
+    if(t.closest('[data-wa]')){sendWA(main._parts[+t.closest('[data-wa]').dataset.wa]);return}
+    if(t.closest('[data-copy]')){copyText(main._parts[+t.closest('[data-copy]').dataset.copy]);return}
+    if(t.id==='waGo'){sendWA(main._msg);return}if(t.id==='waCopy'){copyText(main._msg);return}});
+  main.addEventListener('change',e=>{if(e.target.id==='tNum'){LS.set('tNum',e.target.checked);renderMain()}if(e.target.id==='waConv'){LS.set('waFormat',e.target.checked);renderMain()}});
+  $('#fmt').addEventListener('pointerdown',e=>e.preventDefault());
+  $('#fmt').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;const f=b.dataset.f;const t=ed();if(!t)return;
+    if(f==='done'){t.blur();return}if(f==='b'||f==='i'){wrapSel(t,f==='b'?'**':'*');return}prefixLine(t,{h:'# ',li:'- ',task:'- [ ] ',q:'> '}[f])});
+  if(window.visualViewport){visualViewport.addEventListener('resize',placeFmt);visualViewport.addEventListener('scroll',placeFmt)}
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){startSync()}else{flushSave();stopSync()}});
+  window.addEventListener('pagehide',()=>flushSave());
+}
+function placeFmt(){const f=$('#fmt');if(f.hidden||!window.visualViewport)return;const vv=visualViewport;const gap=window.innerHeight-(vv.height+vv.offsetTop);f.style.transform=`translateY(${-Math.max(0,gap)}px)`}
+function setRange(t,a,b,str){t.focus();t.setSelectionRange(a,b);if(!document.execCommand||!document.execCommand('insertText',false,str)){t.setRangeText(str,a,b,'end')}scheduleSave()}
+function prefixLine(t,p){const v=t.value,pos=t.selectionStart;const ls=v.lastIndexOf('\n',pos-1)+1;if(v.startsWith(p,ls)){setRange(t,ls,ls+p.length,'')}else{setRange(t,ls,ls,p);t.setSelectionRange(pos+p.length,pos+p.length)}}
+function wrapSel(t,m){const a=t.selectionStart,b=t.selectionEnd,sel=t.value.slice(a,b);setRange(t,a,b,m+sel+m);t.setSelectionRange(a+m.length,a+m.length+sel.length)}
+/* Return inside a list continues it; Return on an empty item ends it */
+function continueList(t){const v=t.value,pos=t.selectionStart;if(pos!==t.selectionEnd)return false;const ls=v.lastIndexOf('\n',pos-1)+1;const line=v.slice(ls,pos);
+  const m=line.match(/^(\s*)([-*+] \[[ xX]\] |[-*+] |> |(\d+)[.)] )/);if(!m)return false;
+  if(line.trim()===m[2].trim()){setRange(t,ls,pos,'');return true}
+  let pre=m[2];if(/\[[xX]\]/.test(pre))pre=pre.replace(/\[[xX]\]/,'[ ]');if(m[3])pre=(+m[3]+1)+pre.slice(m[3].length);
+  setRange(t,pos,pos,'\n'+m[1]+pre);return true}
+
+/* ================= start ================= */
+(async()=>{
+  try{await DB.open()}catch(e){$('#main').innerHTML='<div class="empty"><div class="big">No puedo guardar notas</div><div>Este navegador no deja usar el almacenamiento (¿modo privado?).</div></div>';return}
+  for(const n of await DB.all('notes'))S.notes.set(n.path,n);for(const d of await DB.all('dirs'))S.dirs.add(d.path);S.kv=await DB.allKV();
+  S.active=LS.get('active',null);S.mode=LS.get('mode','write');setFont(fs());document.body.classList.toggle('hidedone',LS.get('doneStyle','strike')==='hide');
+  wire();render();
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+  await pairFromHash();
+  if(conn())startSync();
+  if(!standalone()&&/iPhone|iPad/.test(navigator.userAgent)&&!LS.get('tipShown',false)){showInstallTip();LS.set('tipShown',true)}
+})();
+</script>
+</body>
+</html>
